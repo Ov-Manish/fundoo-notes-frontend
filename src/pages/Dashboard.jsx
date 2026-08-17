@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
+import TakeNotes from '../components/common/TakeNotes'
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -49,13 +50,13 @@ function Dashboard() {
           <div className="max-w-6xl mx-auto">
             {/* Conditional Rendering based on activeView */}
             {activeView === 'notes' && (
-              <div className="text-center py-10 bg-white border border-gray-200 rounded-3xl p-12 shadow-sm max-w-lg mx-auto mt-10">
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-4">Workspace Ready</h2>
-                <p className="text-gray-500 mb-6">
-                  You have authenticated successfully. In the next phase, we will configure note-taking components here!
-                </p>
-                <div className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Connected to Microservices
+              <div className="space-y-8">
+                {/* 1. Mount the Note Creator */}
+                <TakeNotes/>
+
+                {/* Placeholder for the Note Grid List */}
+                <div className="text-center py-10 text-gray-400">
+                  <p>Your saved notes will display here.</p>
                 </div>
               </div>
             )}
