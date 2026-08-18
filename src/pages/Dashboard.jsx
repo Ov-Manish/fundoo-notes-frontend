@@ -4,7 +4,7 @@ import { logout } from '../features/auth/authSlice';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import TakeNotes from '../components/common/TakeNotes'
-
+import NoteList from '../components/common/NoteList'
 function Dashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -54,10 +54,8 @@ function Dashboard() {
                 {/* 1. Mount the Note Creator */}
                 <TakeNotes/>
 
-                {/* Placeholder for the Note Grid List */}
-                <div className="text-center py-10 text-gray-400">
-                  <p>Your saved notes will display here.</p>
-                </div>
+                {/* 2. Mount the Dynamic Notes Grid List */}
+                <NoteList/>
               </div>
             )}
             {activeView === 'reminders' && (

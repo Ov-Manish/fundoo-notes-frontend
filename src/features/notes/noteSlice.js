@@ -69,6 +69,7 @@ const initialState = {
 
 const noteSlice = createSlice({
     name : "notes",
+    initialState,
     reducers : {
         clearNotes : (state)=>{
             state.notes = [];

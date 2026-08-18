@@ -10,7 +10,7 @@ const NoteCard = ({note}) => {
             {/* Title (render only if it exists) */}
             {
                 note.title && (
-                    <h3 className="text-base font-bold text-gray-800 tracking-tight leading-snug">
+                    <h3 className="text-base font-bold text-gray-800 tracking-tight leading-snug wrap-break-word">
                         
                         {note.title}
                         
@@ -18,7 +18,7 @@ const NoteCard = ({note}) => {
 
             )}
             {/* Description */}
-            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed wrap-break-word line-clamp-6 leading-relaxed">
                 
                 {note.description}
                 
