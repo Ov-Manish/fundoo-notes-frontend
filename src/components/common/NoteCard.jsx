@@ -1,18 +1,27 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { Trash2, Archive, Palette, RotateCcw } from 'lucide-react'
-import { trashNote, restoreNote, updateNote, toggleArchiveNote } from '../../features/notes/noteSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { Trash2, Archive, Palette, RotateCcw, Bell } from 'lucide-react'
+import { trashNote, restoreNote, updateNote, toggleArchiveNote, createReminder } from '../../features/notes/noteSlice'
 
 const NoteCard = ({ note }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const { reminders } = useSelector((state) => state.notes);
 
   // Safely extract properties to support both Java Lombok and Jackson JSON serialization names
   const isDeleted = note.isDeleted !== undefined ? note.isDeleted : note.deleted;
   const isArchived = note.isArchived !== undefined ? note.isArchived : note.archived;
 
+  // Search if this note has an active reminder in state
+  const activeReminder = reminders.find((r) => r.noteId === note.id);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title || '');
   const [editDescription, setEditDescription] = useState(note.description || '');
+
+  // Reminder popover states
+  const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [reminderDateTime, setReminderDateTime] = useState('');
 
   // Pastel colors list mapping Google Keep palette
   const colors = [
@@ -56,6 +65,21 @@ const NoteCard = ({ note }) => {
     }));
   };
 
+  const handleSaveReminder = () => {
+    if (!reminderDateTime || !user) return;
+    const email = typeof user === 'object' ? user.email : user;
+    if (!email) return;
+
+    dispatch(createReminder({
+      noteId: note.id,
+      userEmail: email,
+      message: `Reminder alert: ${note.title || 'Untitled Note'}`,
+      reminderTime: reminderDateTime
+    }));
+
+    setIsReminderOpen(false);
+  };
+
   return (
     <>
       {/* Note Card Body */}
@@ -82,10 +106,23 @@ const NoteCard = ({ note }) => {
               <p className="text-sm text-gray-600 whitespace-pre-wrap break-words line-clamp-6 leading-relaxed">
                   {note.description}
               </p>
+
+              {/* Active Reminder Chip Display */}
+              {activeReminder && (
+                <div 
+                  onClick={(e) => e.stopPropagation()} // Prevent opening the edit modal when clicking chip
+                  className="flex items-center gap-1 mt-3 text-[10px] font-bold bg-black/5 text-gray-600 px-2 py-0.5 rounded-full w-fit max-w-full select-none"
+                >
+                  <Bell size={10} className="text-gray-500" />
+                  <span className="truncate">
+                    {new Date(activeReminder.reminderTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
           </div>
 
           {/* 2. Hover Action Toolbar */}
-          <div className="flex items-center gap-3 mt-4 pt-2 border-t border-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500">
+          <div className="flex items-center gap-3 mt-4 pt-2 border-t border-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-500">
               {isDeleted ? (
                   /* Trashed Note Toolbar: Show Restore Option */
                   <button 
@@ -99,7 +136,7 @@ const NoteCard = ({ note }) => {
                       <RotateCcw size={16}/>
                   </button>
               ) : (
-                  /* Active Note Toolbar: Show Color, Archive, and Trash options */
+                  /* Active Note Toolbar: Show Color, Archive, Reminder, and Trash options */
                   <>
                     {/* Hover Color Picker */}
                     <div className="relative group/palette">
@@ -124,6 +161,45 @@ const NoteCard = ({ note }) => {
                           />
                         ))}
                       </div>
+                    </div>
+
+                    {/* Reminder Popover */}
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsReminderOpen(!isReminderOpen);
+                        }} 
+                        className={`p-1.5 rounded-full transition-colors ${
+                          activeReminder 
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
+                            : 'hover:bg-black/5 hover:text-gray-800'
+                        }`}
+                        title="Add reminder"
+                      >
+                          <Bell size={16}/>
+                      </button>
+                      
+                      {isReminderOpen && (
+                        <div 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="absolute top-full left-0 mt-2 p-3 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 w-56 flex flex-col space-y-2"
+                        >
+                          <h4 className="text-[10px] font-bold text-gray-700 select-none pb-1 border-b border-gray-100">Schedule Reminder</h4>
+                          <input 
+                            type="datetime-local" 
+                            value={reminderDateTime}
+                            onChange={(e) => setReminderDateTime(e.target.value)}
+                            className="text-[10px] border border-gray-200 rounded-lg p-1.5 focus:outline-none focus:border-yellow-500 w-full bg-gray-50/50"
+                          />
+                          <button 
+                            onClick={handleSaveReminder}
+                            className="text-[10px] py-1.5 bg-yellow-500 hover:bg-yellow-600 !text-white font-bold rounded-lg transition-colors shadow-sm w-full"
+                          >
+                            Save Reminder
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <button 

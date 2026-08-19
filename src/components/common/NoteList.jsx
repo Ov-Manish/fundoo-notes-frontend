@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Loader2 } from 'lucide-react'
-import { fetchNotes, fetchTrashedNotes, fetchArchivedNotes } from '../../features/notes/noteSlice'
+import { fetchNotes, fetchTrashedNotes, fetchArchivedNotes, fetchActiveReminders } from '../../features/notes/noteSlice'
 import NoteCard from './NoteCard'
 
 const NoteList = ({ activeView }) => {
     const dispatch = useDispatch();
-    const { notes, trashedNotes, archivedNotes, loading, error } = useSelector((state) => state.notes);
+    const { user } = useSelector((state) => state.auth);
+    const { notes, trashedNotes, archivedNotes, reminders, searchResults, searchQuery, loading, error } = useSelector((state) => state.notes);
 
     // Fetches the correct Notes depending on activeView
     useEffect(() => {
@@ -16,13 +17,22 @@ const NoteList = ({ activeView }) => {
             dispatch(fetchTrashedNotes());
         } else if (activeView === 'archive') {
             dispatch(fetchArchivedNotes());
+        } else if (activeView === 'reminders') {
+            dispatch(fetchNotes()); // Fetch active notes to filter against reminders
         }
-    }, [activeView, dispatch]);
+        
+        // Fetch active reminders if user email is present
+        if (user && user.email) {
+            dispatch(fetchActiveReminders(user.email));
+        }
+    }, [activeView, dispatch, user]);
 
     // Choose which notes array to render
     const currentNotes = 
+        searchQuery.trim() !== '' ? searchResults :
         activeView === 'trash' ? trashedNotes : 
         activeView === 'archive' ? archivedNotes : 
+        activeView === 'reminders' ? notes.filter((note) => reminders.some((r) => r.noteId === note.id)) :
         notes;
 
     // If Loading is True and Data has not Come then Loading Component Will render
@@ -48,15 +58,19 @@ const NoteList = ({ activeView }) => {
     if (currentNotes.length === 0) {
         return (
              <div className="text-center py-20 text-gray-400 select-none">
-                <div className="text-5xl mb-4">💡</div>
+                <div className="text-5xl mb-4">{searchQuery.trim() ? '🔍' : '💡'}</div>
                 <p className="text-lg font-semibold text-gray-500">
-                    {activeView === 'trash' ? 'No notes in Trash' : 
+                    {searchQuery.trim() ? `No matching notes found` :
+                     activeView === 'trash' ? 'No notes in Trash' : 
                      activeView === 'archive' ? 'No notes in Archive' : 
+                     activeView === 'reminders' ? 'No notes with Reminders' :
                      'Notes you add appear here'}
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
-                    {activeView === 'trash' ? 'Your deleted notes list is empty.' : 
+                    {searchQuery.trim() ? `Try searching for different keywords.` :
+                     activeView === 'trash' ? 'Your deleted notes list is empty.' : 
                      activeView === 'archive' ? 'Your archived notes list is empty.' : 
+                     activeView === 'reminders' ? 'Your scheduled reminders list is empty.' :
                      'Start writing notes to populate your workspace.'}
                 </p>
             </div>

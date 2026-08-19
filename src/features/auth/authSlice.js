@@ -33,7 +33,8 @@ export const loginUser = createAsyncThunk(
             const response = await axios.post(`${API_URL}/login` , credentials);
             if (response.data.token) {
                 localStorage.setItem('token',response.data.token);
-                localStorage.setItem('user',JSON.stringify(response.data.user))
+                const userObj = response.data.user || { email: credentials.email };
+                localStorage.setItem('user',JSON.stringify(userObj));
             }
 
             return response.data; // returning the response
@@ -115,7 +116,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.success = true;
                 state.token = action.payload.token;
-                state.user = action.payload.user || action.meta.arg.email; // if action payload return minimal data like token only so thats why we have the cross check 
+                state.user = action.payload.user || { email: action.meta.arg.email }; 
             })
             .addCase(loginUser.rejected , (state , action)=>{
                 state.loading = false;

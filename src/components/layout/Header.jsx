@@ -1,7 +1,7 @@
 import React from 'react'
 import {Menu , Search , LogOut} from 'lucide-react'
 
-const Header = ({user , onLogout , onToggleSidebar}) => {
+const Header = ({user, onLogout, onToggleSidebar, searchQuery, onSearchChange}) => {
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50 shadow-sm">
       
@@ -34,6 +34,8 @@ const Header = ({user , onLogout , onToggleSidebar}) => {
                 <input
                     type="text"
                     placeholder="Search notes..."
+                    value={searchQuery || ''}
+                    onChange={(e) => onSearchChange(e.target.value)}
                     className="w-full py-2.5 pr-4 text-sm bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none"
                 />
             </div>
@@ -44,11 +46,11 @@ const Header = ({user , onLogout , onToggleSidebar}) => {
         {/* User Info Greeting */}
         <div className="text-right hidden sm:block">
           <p className="text-xs text-gray-400 font-medium">Logged in as</p>
-          <p className="text-sm font-bold text-gray-700">{user}</p>
+          <p className="text-sm font-bold text-gray-700">{user && typeof user === 'object' ? user.email : user}</p>
         </div>
         {/* Profile Circle Icon Placeholder */}
         <div className="h-9 w-9 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-white shadow-sm cursor-default">
-          {user ? user.charAt(0).toUpperCase() : 'U'}
+          {user ? (typeof user === 'object' ? user.email : user).charAt(0).toUpperCase() : 'U'}
         </div>
         {/* Logout Icon Button */}
         <button
