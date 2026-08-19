@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, activeView, onViewChange, onEditLabelsClick }) => {
 
   return (
     <aside 
-      className={`fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 z-40 transition-all duration-300 flex flex-col justify-between py-4 ${
+      className={`fixed left-0 top-16 bottom-0 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 z-40 transition-all duration-300 flex flex-col justify-between py-4 ${
         isOpen ? 'w-64' : 'w-20'
       }`}
     >
@@ -40,11 +40,11 @@ const Sidebar = ({ isOpen, activeView, onViewChange, onEditLabelsClick }) => {
                   onClick={() => onViewChange(item.id)}
                   className={`w-full flex items-center h-12 rounded-xl transition-all duration-200 px-4 group ${
                     isActive 
-                      ? 'bg-yellow-100 text-yellow-800 font-bold' 
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-500 font-bold' 
+                      : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-850'
                   }`}
                 >
-                  <div className={`mr-4 ${isActive ? 'text-yellow-600' : 'text-gray-500 group-hover:text-gray-800'}`}>
+                  <div className={`mr-4 ${isActive ? 'text-yellow-600 dark:text-yellow-500' : 'text-gray-500 dark:text-zinc-500 group-hover:text-gray-800 dark:group-hover:text-zinc-200'}`}>
                     <Icon size={20} />
                   </div>
                   <span
@@ -62,8 +62,8 @@ const Sidebar = ({ isOpen, activeView, onViewChange, onEditLabelsClick }) => {
 
         {/* Divider line and LABELS section */}
         {labels.length > 0 && (
-          <div className="border-t border-gray-100 my-4 pt-4 px-7">
-            <span className={`text-[10px] font-bold text-gray-400 tracking-widest uppercase select-none ${
+          <div className="border-t border-gray-100 dark:border-zinc-800 my-4 pt-4 px-7">
+            <span className={`text-[10px] font-bold text-gray-400 dark:text-zinc-500 tracking-widest uppercase select-none ${
               isOpen ? 'block' : 'hidden'
             }`}>
               Labels
@@ -81,11 +81,11 @@ const Sidebar = ({ isOpen, activeView, onViewChange, onEditLabelsClick }) => {
                   onClick={() => onViewChange(`label-${label.id}`)}
                   className={`w-full flex items-center h-11 rounded-xl transition-all duration-200 px-4 group ${
                     isActive 
-                      ? 'bg-yellow-100 text-yellow-800 font-bold' 
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-500 font-bold' 
+                      : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-850'
                   }`}
                 >
-                  <div className={`mr-4 ${isActive ? 'text-yellow-600' : 'text-gray-500 group-hover:text-gray-800'}`}>
+                  <div className={`mr-4 ${isActive ? 'text-yellow-600 dark:text-yellow-500' : 'text-gray-500 dark:text-zinc-500 group-hover:text-gray-800 dark:group-hover:text-zinc-200'}`}>
                     <Tag size={18} />
                   </div>
                   <span
@@ -103,12 +103,12 @@ const Sidebar = ({ isOpen, activeView, onViewChange, onEditLabelsClick }) => {
       </div>
 
       {/* 3. Edit Labels Button at the bottom */}
-      <div className="px-3 border-t border-gray-100 pt-4 mt-auto">
+      <div className="px-3 border-t border-gray-100 dark:border-zinc-800 pt-4 mt-auto">
         <button
           onClick={onEditLabelsClick}
-          className="w-full flex items-center h-12 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200 px-4 group"
+          className="w-full flex items-center h-12 rounded-xl text-gray-600 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-850 transition-all duration-200 px-4 group"
         >
-          <div className="mr-4 text-gray-500 group-hover:text-gray-800">
+          <div className="mr-4 text-gray-500 dark:text-zinc-500 group-hover:text-gray-800 dark:group-hover:text-zinc-200">
             <Pencil size={18} />
           </div>
           <span

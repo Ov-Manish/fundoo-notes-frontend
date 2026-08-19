@@ -38,7 +38,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex flex-col font-sans transition-colors duration-200">
       
       {/* Top Header */}
       <Header 
@@ -76,7 +76,7 @@ function Dashboard() {
             {/* Render dynamically filtered workspaces */}
             {searchQuery.trim() ? (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">
+                <h2 className="text-xl font-bold text-gray-700 dark:text-zinc-200 border-b dark:border-zinc-800 pb-2 select-none">
                   Search Results for "{searchQuery}"
                 </h2>
                 <NoteList activeView={activeView} />
@@ -90,25 +90,25 @@ function Dashboard() {
                 )}
                 {activeView === 'reminders' && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">Reminders Workspace</h2>
+                    <h2 className="text-xl font-bold text-gray-700 dark:text-zinc-200 border-b dark:border-zinc-800 pb-2 select-none">Reminders Workspace</h2>
                     <NoteList activeView={activeView} />
                   </div>
                 )}
                 {activeView === 'archive' && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">Archive Workspace</h2>
+                    <h2 className="text-xl font-bold text-gray-700 dark:text-zinc-200 border-b dark:border-zinc-800 pb-2 select-none">Archive Workspace</h2>
                     <NoteList activeView={activeView} />
                   </div>
                 )}
                 {activeView === 'trash' && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">Trash Bin</h2>
+                    <h2 className="text-xl font-bold text-gray-700 dark:text-zinc-200 border-b dark:border-zinc-800 pb-2 select-none">Trash Bin</h2>
                     <NoteList activeView={activeView} />
                   </div>
                 )}
                 {activeView.startsWith('label-') && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">
+                    <h2 className="text-xl font-bold text-gray-700 dark:text-zinc-200 border-b dark:border-zinc-800 pb-2 select-none">
                       Label Workspace: {labels.find((l) => `label-${l.id}` === activeView)?.name || 'Notes'}
                     </h2>
                     <NoteList activeView={activeView} />

@@ -88,6 +88,21 @@ export const restoreNote = createAsyncThunk(
     }
 );
 
+// Delete a Note Permanently from Database (Delete Forever)
+export const deleteNotePermanently = createAsyncThunk(
+    'notes/deleteNotePermanently',
+    async (noteId, { rejectWithValue }) => {
+        try {
+            await axios.delete(`${API_URL}/delete-forever/${noteId}`, getAuthHeaders());
+            return noteId; // Returns deleted note ID
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to delete note permanently.'
+            );
+        }
+    }
+);
+
 // Update an existing note
 export const updateNote = createAsyncThunk(
     'notes/updateNote',
@@ -371,6 +386,19 @@ const noteSlice = createSlice({
                 state.error = action.payload;
             })
 
+            // Delete Note Permanently (Delete Forever)
+            .addCase(deleteNotePermanently.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteNotePermanently.fulfilled, (state, action) => {
+                state.loading = false;
+                state.trashedNotes = state.trashedNotes.filter((note) => note.id !== action.payload);
+            })
+            .addCase(deleteNotePermanently.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
             // Fetch Trashed Notes
             .addCase(fetchTrashedNotes.pending, (state) => {
                 state.loading = true;
@@ -391,9 +419,15 @@ const noteSlice = createSlice({
             })
             .addCase(updateNote.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.notes.findIndex((note) => note.id === action.payload.id);
-                if (index !== -1) {
-                    state.notes[index] = action.payload;
+                // 1. Update in active notes if present
+                const activeIndex = state.notes.findIndex((note) => note.id === action.payload.id);
+                if (activeIndex !== -1) {
+                    state.notes[activeIndex] = action.payload;
+                }
+                // 2. Update in archived notes if present
+                const archiveIndex = state.archivedNotes.findIndex((note) => note.id === action.payload.id);
+                if (archiveIndex !== -1) {
+                    state.archivedNotes[archiveIndex] = action.payload;
                 }
             })
             .addCase(updateNote.rejected, (state, action) => {

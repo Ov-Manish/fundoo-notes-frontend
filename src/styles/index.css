@@ -3,6 +3,8 @@
 
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Default Theme (Light Mode) */
   --bg-primary: #f5f6f8;

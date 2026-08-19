@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Plus, Check, Trash2, Edit2, X, Tag } from 'lucide-react'
+import { Plus, Check, Trash2, Edit2, X } from 'lucide-react'
 import { createLabel, updateLabelName, deleteLabel } from '../../features/notes/noteSlice'
 
 const EditLabelsModal = ({ onClose }) => {
@@ -35,20 +35,20 @@ const EditLabelsModal = ({ onClose }) => {
     >
       <div 
         onClick={(e) => e.stopPropagation()} 
-        className="bg-white rounded-2xl w-full max-w-xs shadow-2xl p-5 border border-gray-100 flex flex-col space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-xs shadow-2xl p-5 border border-gray-100 dark:border-zinc-800 flex flex-col space-y-4 animate-in fade-in zoom-in-95 duration-200"
       >
-        <h3 className="text-sm font-bold text-gray-800 select-none pb-2 border-b border-gray-100">
+        <h3 className="text-sm font-bold text-gray-800 dark:text-zinc-100 select-none pb-2 border-b border-gray-100 dark:border-zinc-800">
           Edit labels
         </h3>
 
         {/* 1. Create label input row */}
         <div className="flex items-center gap-2 py-1">
           {newLabelName.trim() ? (
-            <button onClick={() => setNewLabelName('')} className="p-1 hover:bg-gray-100 rounded-full text-gray-500">
+            <button onClick={() => setNewLabelName('')} className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full text-gray-500 dark:text-zinc-400">
               <X size={16} />
             </button>
           ) : (
-            <div className="p-1 text-gray-400">
+            <div className="p-1 text-gray-400 dark:text-zinc-500">
               <Plus size={16} />
             </div>
           )}
@@ -58,10 +58,10 @@ const EditLabelsModal = ({ onClose }) => {
             value={newLabelName}
             onChange={(e) => setNewLabelName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            className="text-xs bg-transparent flex-1 focus:outline-none placeholder-gray-400 font-medium"
+            className="text-xs bg-transparent flex-1 focus:outline-none placeholder-gray-400 dark:placeholder-zinc-500 font-medium text-gray-800 dark:text-zinc-150"
           />
           {newLabelName.trim() && (
-            <button onClick={handleCreate} className="p-1 hover:bg-yellow-50 rounded-full text-yellow-600">
+            <button onClick={handleCreate} className="p-1 hover:bg-yellow-50 dark:hover:bg-yellow-950/20 rounded-full text-yellow-600 dark:text-yellow-400">
               <Check size={16} />
             </button>
           )}
@@ -76,7 +76,7 @@ const EditLabelsModal = ({ onClose }) => {
                 {/* Left Hover Delete Button */}
                 <button 
                   onClick={() => handleDelete(label.id)}
-                  className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-full"
+                  className="p-1 hover:bg-red-50 dark:hover:bg-red-950/20 text-gray-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-full cursor-pointer"
                   title="Delete label"
                 >
                   <Trash2 size={14} />
@@ -88,8 +88,8 @@ const EditLabelsModal = ({ onClose }) => {
                   value={isEditing ? editingLabelValue : label.name}
                   onChange={(e) => setEditingLabelValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleRename(label.id)}
-                  className={`text-xs flex-1 bg-transparent focus:outline-none font-medium border-b border-transparent ${
-                    isEditing ? 'border-yellow-400 bg-gray-50 p-1 rounded-md' : ''
+                  className={`text-xs flex-1 bg-transparent focus:outline-none font-medium border-b border-transparent text-gray-800 dark:text-zinc-150 ${
+                    isEditing ? 'border-yellow-400 bg-gray-50 dark:bg-zinc-800 p-1 rounded-md' : ''
                   }`}
                 />
 
@@ -97,7 +97,7 @@ const EditLabelsModal = ({ onClose }) => {
                 {isEditing ? (
                   <button 
                     onClick={() => handleRename(label.id)} 
-                    className="p-1 hover:bg-yellow-50 text-yellow-600 rounded-full cursor-pointer"
+                    className="p-1 hover:bg-yellow-50 dark:hover:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 rounded-full cursor-pointer"
                     title="Save rename"
                   >
                     <Check size={14} />
@@ -108,7 +108,7 @@ const EditLabelsModal = ({ onClose }) => {
                       setEditingLabelId(label.id);
                       setEditingLabelValue(label.name);
                     }}
-                    className="p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-700 rounded-full opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300 rounded-full opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer"
                     title="Rename label"
                   >
                     <Edit2 size={14} />
@@ -120,10 +120,10 @@ const EditLabelsModal = ({ onClose }) => {
         </div>
 
         {/* 3. Footer close button */}
-        <div className="flex justify-end pt-2 border-t border-gray-100">
+        <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-zinc-800">
           <button 
             onClick={onClose}
-            className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+            className="px-4 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm cursor-pointer"
           >
             Done
           </button>
