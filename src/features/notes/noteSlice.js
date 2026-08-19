@@ -205,6 +205,80 @@ export const searchNotes = createAsyncThunk(
     }
 );
 
+// Fetch all labels belonging to the logged-in user
+export const fetchLabels = createAsyncThunk(
+    'notes/fetchLabels',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_BASE_URL}/labels/my-labels`,
+                getAuthHeaders()
+            );
+            return response.data; // Array of labels
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to load labels.'
+            );
+        }
+    }
+);
+
+// Create a new label
+export const createLabel = createAsyncThunk(
+    'notes/createLabel',
+    async (name, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/labels/create?name=${name}`,
+                {},
+                getAuthHeaders()
+            );
+            return response.data; // Created label object
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to create label.'
+            );
+        }
+    }
+);
+
+// Rename an existing label
+export const updateLabelName = createAsyncThunk(
+    'notes/updateLabelName',
+    async ({ id, name }, { rejectWithValue }) => {
+        try {
+            const response = await axios.put(
+                `${import.meta.env.VITE_API_BASE_URL}/labels/${id}?name=${name}`,
+                {},
+                getAuthHeaders()
+            );
+            return response.data; // Renamed label object
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to rename label.'
+            );
+        }
+    }
+);
+
+// Delete a label entirely from the system
+export const deleteLabel = createAsyncThunk(
+    'notes/deleteLabel',
+    async (id, { rejectWithValue }) => {
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_API_BASE_URL}/labels/${id}`,
+                getAuthHeaders()
+            );
+            return id; // Deleted label ID
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to delete label.'
+            );
+        }
+    }
+);
+
 
 // INITIAL STATE 
 
@@ -215,6 +289,7 @@ const initialState = {
     reminders: [],      // 👈 Storing active reminders in state
     searchQuery: '',    // 👈 Storing active search query
     searchResults: [],  // 👈 Storing search results from search-service
+    labels: [],         // 👈 Storing user custom labels in state
     loading : false,
     error : null,
 };
@@ -403,6 +478,29 @@ const noteSlice = createSlice({
             .addCase(searchNotes.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+
+            // Fetch Labels
+            .addCase(fetchLabels.fulfilled, (state, action) => {
+                state.labels = action.payload;
+            })
+
+            // Create Label
+            .addCase(createLabel.fulfilled, (state, action) => {
+                state.labels.push(action.payload);
+            })
+
+            // Update Label Name
+            .addCase(updateLabelName.fulfilled, (state, action) => {
+                const index = state.labels.findIndex((l) => l.id === action.payload.id);
+                if (index !== -1) {
+                    state.labels[index] = action.payload;
+                }
+            })
+
+            // Delete Label
+            .addCase(deleteLabel.fulfilled, (state, action) => {
+                state.labels = state.labels.filter((l) => l.id !== action.payload);
             })
             
     },

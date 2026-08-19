@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Loader2 } from 'lucide-react'
+import axios from 'axios'
 import { fetchNotes, fetchTrashedNotes, fetchArchivedNotes, fetchActiveReminders } from '../../features/notes/noteSlice'
 import NoteCard from './NoteCard'
 
@@ -8,6 +9,9 @@ const NoteList = ({ activeView }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { notes, trashedNotes, archivedNotes, reminders, searchResults, searchQuery, loading, error } = useSelector((state) => state.notes);
+
+    // Local state to store mapped note IDs for the active custom label
+    const [labelNoteIds, setLabelNoteIds] = useState([]);
 
     // Fetches the correct Notes depending on activeView
     useEffect(() => {
@@ -19,6 +23,17 @@ const NoteList = ({ activeView }) => {
             dispatch(fetchArchivedNotes());
         } else if (activeView === 'reminders') {
             dispatch(fetchNotes()); // Fetch active notes to filter against reminders
+        } else if (activeView.startsWith('label-')) {
+            dispatch(fetchNotes()); // Load active notes
+            const labelId = activeView.split('-')[1];
+            
+            // Retrieve mapped note IDs from label-service
+            axios.get(
+                `${import.meta.env.VITE_API_BASE_URL}/labels/label/${labelId}/notes`,
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            )
+            .then((res) => setLabelNoteIds(res.data))
+            .catch((err) => console.error("Error loading label mapping note list: ", err));
         }
         
         // Fetch active reminders if user email is present
@@ -33,6 +48,7 @@ const NoteList = ({ activeView }) => {
         activeView === 'trash' ? trashedNotes : 
         activeView === 'archive' ? archivedNotes : 
         activeView === 'reminders' ? notes.filter((note) => reminders.some((r) => r.noteId === note.id)) :
+        activeView.startsWith('label-') ? notes.filter((note) => labelNoteIds.includes(note.id)) :
         notes;
 
     // If Loading is True and Data has not Come then Loading Component Will render
@@ -64,6 +80,7 @@ const NoteList = ({ activeView }) => {
                      activeView === 'trash' ? 'No notes in Trash' : 
                      activeView === 'archive' ? 'No notes in Archive' : 
                      activeView === 'reminders' ? 'No notes with Reminders' :
+                     activeView.startsWith('label-') ? 'No notes with this Label' :
                      'Notes you add appear here'}
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
@@ -71,6 +88,7 @@ const NoteList = ({ activeView }) => {
                      activeView === 'trash' ? 'Your deleted notes list is empty.' : 
                      activeView === 'archive' ? 'Your archived notes list is empty.' : 
                      activeView === 'reminders' ? 'Your scheduled reminders list is empty.' :
+                     activeView.startsWith('label-') ? 'Tag notes with this label to populate this view.' :
                      'Start writing notes to populate your workspace.'}
                 </p>
             </div>

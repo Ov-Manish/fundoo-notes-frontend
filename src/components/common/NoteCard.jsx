@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Trash2, Archive, Palette, RotateCcw, Bell } from 'lucide-react'
+import axios from 'axios'
+import { Trash2, Archive, Palette, RotateCcw, Bell, Tag } from 'lucide-react'
 import { trashNote, restoreNote, updateNote, toggleArchiveNote, createReminder } from '../../features/notes/noteSlice'
 
 const NoteCard = ({ note }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { reminders } = useSelector((state) => state.notes);
+  const { reminders, labels } = useSelector((state) => state.notes);
 
   // Safely extract properties to support both Java Lombok and Jackson JSON serialization names
   const isDeleted = note.isDeleted !== undefined ? note.isDeleted : note.deleted;
@@ -14,6 +15,10 @@ const NoteCard = ({ note }) => {
 
   // Search if this note has an active reminder in state
   const activeReminder = reminders.find((r) => r.noteId === note.id);
+
+  // State to hold attached label chips for this specific note
+  const [attachedLabels, setAttachedLabels] = useState([]);
+  const [isLabelsOpen, setIsLabelsOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title || '');
@@ -38,6 +43,22 @@ const NoteCard = ({ note }) => {
     { name: 'Brown', value: '#e6c9a8' },
     { name: 'Gray', value: '#e8eaed' }
   ];
+
+  // Helper to load labels currently attached to this note from label-service
+  const fetchNoteLabels = () => {
+    if (note.id) {
+      axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/labels/note/${note.id}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      )
+      .then((res) => setAttachedLabels(res.data))
+      .catch((err) => console.error("Error fetching note labels: ", err));
+    }
+  };
+
+  useEffect(() => {
+    fetchNoteLabels();
+  }, [note.id]);
 
   const handleCloseModal = () => {
     // Only dispatch update if values actually changed to avoid unnecessary API requests
@@ -80,6 +101,22 @@ const NoteCard = ({ note }) => {
     setIsReminderOpen(false);
   };
 
+  const handleToggleLabel = (labelId) => {
+    const isAttached = attachedLabels.some((l) => l.id === labelId);
+    const url = isAttached ? 'unmap' : 'map';
+    const method = isAttached ? 'delete' : 'post';
+
+    axios({
+      method,
+      url: `${import.meta.env.VITE_API_BASE_URL}/labels/${url}?noteId=${note.id}&labelId=${labelId}`,
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(() => {
+      fetchNoteLabels(); // Reload note chips instantly!
+    })
+    .catch((err) => console.error("Error toggling label assignment: ", err));
+  };
+
   return (
     <>
       {/* Note Card Body */}
@@ -106,6 +143,24 @@ const NoteCard = ({ note }) => {
               <p className="text-sm text-gray-600 whitespace-pre-wrap break-words line-clamp-6 leading-relaxed">
                   {note.description}
               </p>
+
+              {/* Active Labels Chips Display */}
+              {attachedLabels.length > 0 && (
+                <div 
+                  onClick={(e) => e.stopPropagation()} // Prevent opening edit modal
+                  className="flex flex-wrap gap-1 mt-3"
+                >
+                  {attachedLabels.map((lbl) => (
+                    <div 
+                      key={lbl.id} 
+                      className="flex items-center gap-1 text-[9px] font-bold bg-black/5 text-gray-600 px-2 py-0.5 rounded-full select-none"
+                    >
+                      <Tag size={8} className="text-gray-400" />
+                      <span className="truncate max-w-[80px]">{lbl.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Active Reminder Chip Display */}
               {activeReminder && (
@@ -136,7 +191,7 @@ const NoteCard = ({ note }) => {
                       <RotateCcw size={16}/>
                   </button>
               ) : (
-                  /* Active Note Toolbar: Show Color, Archive, Reminder, and Trash options */
+                  /* Active Note Toolbar: Show Color, Archive, Reminder, Label, and Trash options */
                   <>
                     {/* Hover Color Picker */}
                     <div className="relative group/palette">
@@ -198,6 +253,56 @@ const NoteCard = ({ note }) => {
                           >
                             Save Reminder
                           </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tag Label Popover */}
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsLabelsOpen(!isLabelsOpen);
+                        }} 
+                        className={`p-1.5 rounded-full transition-colors ${
+                          attachedLabels.length > 0 
+                            ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' 
+                            : 'hover:bg-black/5 hover:text-gray-800'
+                        }`}
+                        title="Change labels"
+                      >
+                          <Tag size={16}/>
+                      </button>
+                      
+                      {isLabelsOpen && (
+                        <div 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="absolute top-full left-0 mt-2 p-3 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 w-48 flex flex-col space-y-2"
+                        >
+                          <h4 className="text-[10px] font-bold text-gray-700 select-none pb-1 border-b border-gray-100">Label Note</h4>
+                          <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                            {labels.length === 0 ? (
+                              <p className="text-[9px] text-gray-400 italic text-center py-2 select-none">No labels created yet</p>
+                            ) : (
+                              labels.map((label) => {
+                                const isChecked = attachedLabels.some((l) => l.id === label.id);
+                                return (
+                                  <label 
+                                    key={label.id} 
+                                    className="flex items-center gap-2 hover:bg-gray-50 p-1 rounded-md cursor-pointer text-[10px] font-semibold text-gray-600 w-full"
+                                  >
+                                    <input 
+                                      type="checkbox" 
+                                      checked={isChecked}
+                                      onChange={() => handleToggleLabel(label.id)}
+                                      className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500 cursor-pointer h-3 w-3"
+                                    />
+                                    <span className="truncate">{label.name}</span>
+                                  </label>
+                                );
+                              })
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

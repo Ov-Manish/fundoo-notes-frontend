@@ -6,17 +6,21 @@ import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import TakeNotes from '../components/common/TakeNotes'
 import NoteList from '../components/common/NoteList'
+import EditLabelsModal from '../components/common/EditLabelsModal'
 
 function Dashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { searchQuery } = useSelector((state) => state.notes);
+  const { searchQuery, labels } = useSelector((state) => state.notes);
 
   // 1. Lifted State: Controls whether the left sidebar is expanded or collapsed
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // 2. State for active view (e.g. 'notes', 'reminders', 'archive', 'trash')
   const [activeView, setActiveView] = useState('notes');
+
+  // 3. State to control the Edit Labels Modal dialog overlay
+  const [isEditLabelsOpen, setIsEditLabelsOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -36,7 +40,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       
-      {/* 3. The Top Header */}
+      {/* Top Header */}
       <Header 
         user={user} 
         onLogout={handleLogout} 
@@ -45,17 +49,18 @@ function Dashboard() {
         onSearchChange={handleSearchChange}
       />
 
-      {/* 4. The Body Container (Sidebar + Main Workspace side-by-side) */}
+      {/* Body Container (Sidebar + Main Workspace side-by-side) */}
       <div className="flex flex-1 pt-16">
         
-        {/* The Sidebar navigation */}
+        {/* Sidebar navigation */}
         <Sidebar 
           isOpen={isSidebarOpen} 
           activeView={activeView} 
           onViewChange={setActiveView} 
+          onEditLabelsClick={() => setIsEditLabelsOpen(true)}
         />
 
-        {/* 5. Main Content Area */}
+        {/* Main Content Area */}
         <main className={`flex-1 p-6 transition-all duration-300 ${
           isSidebarOpen ? 'ml-64' : 'ml-20'
         }`}>
@@ -101,6 +106,14 @@ function Dashboard() {
                     <NoteList activeView={activeView} />
                   </div>
                 )}
+                {activeView.startsWith('label-') && (
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">
+                      Label Workspace: {labels.find((l) => `label-${l.id}` === activeView)?.name || 'Notes'}
+                    </h2>
+                    <NoteList activeView={activeView} />
+                  </div>
+                )}
               </>
             )}
 
@@ -108,6 +121,11 @@ function Dashboard() {
         </main>
 
       </div>
+
+      {/* Edit Labels Modal Overlay dialog */}
+      {isEditLabelsOpen && (
+        <EditLabelsModal onClose={() => setIsEditLabelsOpen(false)} />
+      )}
     </div>
   );
 }
