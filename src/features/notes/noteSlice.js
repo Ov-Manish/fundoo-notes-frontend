@@ -57,10 +57,106 @@ export const addNotes = createAsyncThunk(
 );
 
 
+// Soft - Delete a Note (Move to Trash)
+export const trashNote = createAsyncThunk(
+    'notes/trashNote',
+    async (noteId , {rejectWithValue}) =>{
+        try {
+            await axios.delete(`${API_URL}/${noteId}`,getAuthHeaders());
+            return noteId;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to move note to trash.'
+            );
+        }
+    }
+);
+
+
+// Restore a Soft - Deleted note from Trash
+export const restoreNote = createAsyncThunk(
+    'notes/restoreNote',
+    async (noteId , {rejectWithValue}) =>{
+        try {
+            const response = await axios.put(`${API_URL}/undo/${noteId}`, {} , getAuthHeaders());
+            return response.data;  // returned the restored note object
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to Restore Note.'
+            );
+        }
+    }
+);
+
+// Update an existing note
+export const updateNote = createAsyncThunk(
+    'notes/updateNote',
+    async ({ noteId, noteData }, { rejectWithValue }) => {
+        try {
+            const response = await axios.put(`${API_URL}/update/${noteId}`, noteData, getAuthHeaders());
+            return response.data; // Returned the updated note object
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to Update Note.'
+            );
+        }
+    }
+);
+
+
+// Fetch All Soft - deleted notes for the Trash Bin
+
+export const fetchTrashedNotes = createAsyncThunk(
+    'notes/fetchTrashNotes',
+    async(_,{rejectWithValue}) =>{
+        try {
+            const response = await axios.get(`${API_URL}/trash`,getAuthHeaders());
+            return response.data; // Array of Soft - deleted notes
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to load trashed notes.'
+            );
+        }
+    }
+);
+
+// Toggle Note Archive Status (Archive / Unarchive)
+export const toggleArchiveNote = createAsyncThunk(
+    'notes/toggleArchiveNote',
+    async (noteId, { rejectWithValue }) => {
+        try {
+            const response = await axios.put(`${API_URL}/archive/${noteId}`, {}, getAuthHeaders());
+            return response.data; // Returned the updated note object
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to Archive/Unarchive Note.'
+            );
+        }
+    }
+);
+
+// Fetch All Archived Notes
+export const fetchArchivedNotes = createAsyncThunk(
+    'notes/fetchArchivedNotes',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${API_URL}/archive`, getAuthHeaders());
+            return response.data; // Array of Archived notes
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to load archived notes.'
+            );
+        }
+    }
+);
+
+
 // INITIAL STATE 
 
 const initialState = {
     notes : [],
+    trashedNotes : [],
+    archivedNotes : [], // 👈 Storing archived notes in state
     loading : false,
     error : null,
 };
@@ -108,7 +204,104 @@ const noteSlice = createSlice({
                 state.loading = false;
                 // Immer Allows us to safely push the new note straight into state
                 state.error = action.payload;
-            });
+            })
+
+
+            // Trash Notes
+            .addCase(trashNote.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(trashNote.fulfilled, (state, action) => {
+                state.loading = false;
+                state.notes = state.notes.filter((note) => note.id !== action.payload);
+                state.archivedNotes = state.archivedNotes.filter((note) => note.id !== action.payload);
+            })
+            .addCase(trashNote.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Restore Notes
+            .addCase(restoreNote.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(restoreNote.fulfilled, (state, action) => {
+                state.loading = false;
+                state.trashedNotes = state.trashedNotes.filter((note) => note.id !== action.payload.id);
+                state.notes.push(action.payload);
+            })
+            .addCase(restoreNote.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Fetch Trashed Notes
+            .addCase(fetchTrashedNotes.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchTrashedNotes.fulfilled, (state, action) => {
+                state.loading = false;
+                state.trashedNotes = action.payload;
+            })
+            .addCase(fetchTrashedNotes.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Update Note
+            .addCase(updateNote.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateNote.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.notes.findIndex((note) => note.id === action.payload.id);
+                if (index !== -1) {
+                    state.notes[index] = action.payload;
+                }
+            })
+            .addCase(updateNote.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Toggle Archive
+            .addCase(toggleArchiveNote.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(toggleArchiveNote.fulfilled, (state, action) => {
+                state.loading = false;
+                const updatedNote = action.payload;
+                const isArchived = updatedNote.isArchived !== undefined ? updatedNote.isArchived : updatedNote.archived;
+                
+                if (isArchived) {
+                    // If note was archived, remove from active and push to archived
+                    state.notes = state.notes.filter((note) => note.id !== updatedNote.id);
+                    state.archivedNotes.push(updatedNote);
+                } else {
+                    // If note was unarchived, remove from archived and push to active
+                    state.archivedNotes = state.archivedNotes.filter((note) => note.id !== updatedNote.id);
+                    state.notes.push(updatedNote);
+                }
+            })
+            .addCase(toggleArchiveNote.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // Fetch Archived Notes
+            .addCase(fetchArchivedNotes.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchArchivedNotes.fulfilled, (state, action) => {
+                state.loading = false;
+                state.archivedNotes = action.payload;
+            })
+            .addCase(fetchArchivedNotes.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             
     },
 });

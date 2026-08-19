@@ -55,7 +55,7 @@ function Dashboard() {
                 <TakeNotes/>
 
                 {/* 2. Mount the Dynamic Notes Grid List */}
-                <NoteList/>
+                <NoteList activeView={activeView} />
               </div>
             )}
             {activeView === 'reminders' && (
@@ -65,15 +65,15 @@ function Dashboard() {
               </div>
             )}
             {activeView === 'archive' && (
-              <div className="text-center py-10 bg-white border border-gray-200 rounded-3xl p-12 shadow-sm max-w-lg mx-auto mt-10">
-                <h2 className="text-2xl font-bold text-gray-800">Archived Notes View</h2>
-                <p className="text-gray-500 mt-2">Archived notes will appear here.</p>
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">Archive Workspace</h2>
+                <NoteList activeView={activeView} />
               </div>
             )}
             {activeView === 'trash' && (
-              <div className="text-center py-10 bg-white border border-gray-200 rounded-3xl p-12 shadow-sm max-w-lg mx-auto mt-10">
-                <h2 className="text-2xl font-bold text-gray-800">Trash Bin View</h2>
-                <p className="text-gray-500 mt-2">Trashed notes will appear here.</p>
+              <div className="space-y-6">
+                <h2 className="text-xl font-bold text-gray-700 border-b pb-2 select-none">Trash Bin</h2>
+                <NoteList activeView={activeView} />
               </div>
             )}
           </div>
